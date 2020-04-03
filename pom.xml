@@ -14,6 +14,7 @@
 
         <junit.jupiter.version>5.6.1</junit.jupiter.version>
 
+        <log4j.version>2.11.2</log4j.version>
     </properties>
 
     <dependencies>
@@ -27,7 +28,30 @@
             <artifactId>json-path</artifactId>
             <version>2.4.0</version>
         </dependency>
+        <!--HTTP client-->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.6</version>
+        </dependency>
 
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.6</version>
+        </dependency>
+<!--        Logging-->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
         <!-- Unit test-->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
