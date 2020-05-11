@@ -10,4 +10,6 @@ public interface Document {
     Document node(String path);
 
     List<Document> nodeList(String path);
+
+    boolean isEmpty();
 }

@@ -66,7 +66,7 @@ public class XmlDocument implements Document {
 
     @Override
     public Document node(String expr) {
-        Document result = null;
+        Document result;
         try {
             Node xnode = (Node) xFactory.newXPath().compile(expr).evaluate(document, XPathConstants.NODE);
 
@@ -91,6 +91,11 @@ public class XmlDocument implements Document {
             throw new RuntimeException(e);
         }
         return docs;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return xml.isEmpty();
     }
 
     private String toString(Node node) throws TransformerException {

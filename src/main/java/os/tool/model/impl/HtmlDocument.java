@@ -12,7 +12,6 @@ import static java.util.stream.Collectors.toList;
 
 public class HtmlDocument implements Document {
     private final String html;
-    private String url;
 
     private final org.jsoup.nodes.Document document;
 
@@ -47,6 +46,10 @@ public class HtmlDocument implements Document {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public boolean isEmpty() {
+        return html.isEmpty();
+    }
 
     @Override
     public boolean equals(Object o) {

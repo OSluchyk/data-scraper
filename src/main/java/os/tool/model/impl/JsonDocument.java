@@ -6,6 +6,8 @@ import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.PathNotFoundException;
 
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -38,16 +40,15 @@ public class JsonDocument implements Document {
         try {
             return document.read(path);
         } catch (PathNotFoundException e) {
-            return null;
+            return Collections.emptyList();
         }
-
     }
 
     @Override
     public Document node(String path) {
         Map propertyMap = document.read(path);
-        String json = parse(propertyMap).jsonString();
-        return new JsonDocument(json);
+        String jsonString = parse(propertyMap).jsonString();
+        return new JsonDocument(jsonString);
     }
 
     @Override
@@ -55,6 +56,11 @@ public class JsonDocument implements Document {
         List<Map> docs = document.read(path);
         return docs.stream().map(m -> new JsonDocument(parse(m).jsonString()))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return json.isEmpty();
     }
 
     @Override
@@ -70,5 +76,13 @@ public class JsonDocument implements Document {
     @Override
     public int hashCode() {
         return json != null ? json.hashCode() : 0;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("JsonDocument{");
+        sb.append("json='").append(json).append('\'');
+        sb.append('}');
+        return sb.toString();
     }
 }
