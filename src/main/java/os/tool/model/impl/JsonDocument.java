@@ -11,25 +11,48 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.jayway.jsonpath.JsonPath.parse;
 
 public class JsonDocument implements Document {
+    private static final long serialVersionUID = 1L;
+
     private final String json;
-    private final DocumentContext document;
+    private transient DocumentContext document;
 
+    // Shared state for sub-documents
+    private transient DocumentContext sharedRootContext;
+    private transient Object subObject; // The sub-object this document represents
 
+    // Root document constructor
     public JsonDocument(String json) {
         this.json = json;
-        this.document = parse(json);
-        document.configuration().setOptions(Option.DEFAULT_PATH_LEAF_TO_NULL, Option.SUPPRESS_EXCEPTIONS);
+        this.sharedRootContext = null;
+        this.subObject = null;
+        // Lazy parsing - don't parse until needed
+    }
 
+    // Sub-document constructor (shares parsed context)
+    private JsonDocument(String json, DocumentContext sharedContext, Object obj) {
+        this.json = json;
+        this.sharedRootContext = sharedContext;
+        this.subObject = obj;
+        this.document = null; // Will parse from string only if needed
+    }
+
+    private DocumentContext getDocument() {
+        if (document == null) {
+            document = parse(json);
+            document.configuration().setOptions(Option.DEFAULT_PATH_LEAF_TO_NULL, Option.SUPPRESS_EXCEPTIONS);
+        }
+        return document;
     }
 
     @Override
     public String textNode(String path) {
         try {
-            return document.read(path);
+            return getDocument().read(path);
         } catch (PathNotFoundException e) {
             return null;
         }
@@ -38,7 +61,7 @@ public class JsonDocument implements Document {
     @Override
     public List<CharSequence> textNodeList(String path) {
         try {
-            return document.read(path);
+            return getDocument().read(path);
         } catch (PathNotFoundException e) {
             return Collections.emptyList();
         }
@@ -46,16 +69,34 @@ public class JsonDocument implements Document {
 
     @Override
     public Document node(String path) {
-        Map propertyMap = document.read(path);
+        DocumentContext ctx = getDocument();
+        Map propertyMap = ctx.read(path);
         String jsonString = parse(propertyMap).jsonString();
-        return new JsonDocument(jsonString);
+        // Share the root context to avoid re-parsing in sub-documents
+        return new JsonDocument(jsonString, ctx, propertyMap);
     }
 
     @Override
     public List<Document> nodeList(String path) {
-        List<Map> docs = document.read(path);
-        return docs.stream().map(m -> new JsonDocument(parse(m).jsonString()))
+        DocumentContext ctx = getDocument();
+        List<Map> docs = ctx.read(path);
+        return docs.stream()
+                .map(m -> {
+                    String jsonString = parse(m).jsonString();
+                    return new JsonDocument(jsonString, ctx, m);
+                })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Stream<Document> nodeStream(String path) {
+        DocumentContext ctx = getDocument();
+        List<Map> docs = ctx.read(path);
+        return docs.stream()
+                .map(m -> {
+                    String jsonString = parse(m).jsonString();
+                    return new JsonDocument(jsonString, ctx, m);
+                });
     }
 
     @Override
